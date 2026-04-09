@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     model_provider: Literal["ollama", "google_ai", "vertex_ai"] = "ollama"
-    model_name: str = "gemma:7b"
+    model_name: str = "gemma2:2b"
     ollama_base_url: str = "http://localhost:11434"
     google_ai_api_key: str | None = None
     google_cloud_project: str | None = None

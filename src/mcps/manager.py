@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 from .client import MCPClient
 from ..utils.logger import get_logger
@@ -19,6 +20,17 @@ class MCPManager:
         servers = self.config.get("servers", {})
         enabled = self.config.get("enabled", [])
         
+        if not servers and not enabled:
+            enabled = ["filesystem"]
+            servers = {
+                "filesystem": {
+                    "type": "fileSystem",
+                    "root_directory": str(Path.home())
+                }
+            }
+            self.config["servers"] = servers
+            self.config["enabled"] = enabled
+        
         for server_name in enabled:
             if server_name in servers:
                 server_config = servers[server_name]
@@ -26,8 +38,12 @@ class MCPManager:
                 client = await self._create_client(server_name, server_config)
                 
                 if client:
-                    self.clients[server_name] = client
-                    logger.info(f"MCP {server_name} inicializado")
+                    connected = await client.connect()
+                    if connected:
+                        self.clients[server_name] = client
+                        logger.info(f"MCP {server_name} inicializado")
+                    else:
+                        logger.warning(f"MCP {server_name} no pudo conectarse")
     
     async def _create_client(
         self,

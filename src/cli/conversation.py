@@ -23,7 +23,7 @@ class ConversationLoop:
     async def initialize(self) -> None:
         """Inicializar conversación y registrar herramientas."""
         self._register_tools()
-        self._register_mcp_tools()
+        await self._register_mcp_tools()
         logger.info("Conversación inicializada")
     
     def _register_tools(self) -> None:
@@ -45,7 +45,7 @@ class ConversationLoop:
         
         logger.info(f"Registradas {len(self.tools)} herramientas")
     
-    def _register_mcp_tools(self) -> None:
+    async def _register_mcp_tools(self) -> None:
         """Registrar herramientas de MCP servers."""
         if not self.core.mcp_manager:
             return
@@ -55,7 +55,7 @@ class ConversationLoop:
         for mcp_name in available_mcps:
             mcp_client = self.core.mcp_manager.get_client(mcp_name)
             if mcp_client:
-                tools = mcp_client.list_tools()
+                tools = await mcp_client.list_tools()
                 for tool in tools:
                     tool_id = f"{mcp_name}:{tool['name']}"
                     self.mcp_tools[tool_id] = {

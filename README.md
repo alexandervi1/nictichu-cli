@@ -48,7 +48,7 @@ python -m src.main interactive
 ### Multi-Modelo
 | Proveedor | Modelos | Estado |
 |-----------|---------|--------|
-| **Ollama** | gemma:7b, llama3, codellama, mistral | ✅ Implementado |
+| **Ollama** | gemma2:2b (liviano), gemma2:9b, llama3, codellama, mistral | ✅ Implementado |
 | **Google AI Studio** | gemini-pro, gemini-1.5-pro | ✅ Implementado |
 | **Vertex AI** | Gemini en Google Cloud | ✅ Implementado |
 
@@ -88,7 +88,7 @@ python -m src.main version
 python -m src.main interactive
 
 # Con modelo específico
-python -m src.main interactive --model gemma:7b --provider ollama
+python -m src.main interactive --model gemma2:2b --provider ollama
 
 # Con Google AI Studio
 python -m src.main interactive --model gemini-pro --provider google

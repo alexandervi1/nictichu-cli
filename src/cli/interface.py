@@ -39,7 +39,7 @@ class NictichuCLI:
     
     def __init__(
         self,
-        model_name: str = "gemma:7b",
+        model_name: str = "gemma2:2b",
         provider: str = "ollama",
         config_path: str | None = None
     ):
@@ -90,9 +90,6 @@ class NictichuCLI:
                 provider=self.provider
             )
             await self.core.initialize()
-            
-            status.update("[bold cyan]Configurando MCP servers...[/bold cyan]")
-            await self.core.initialize_mcps()
             
             status.update("[bold cyan]Preparando herramientas...[/bold cyan]")
             self.conversation = ConversationLoop(self.core)
@@ -298,7 +295,7 @@ class NictichuCLI:
         """Cambiar modelo."""
         if not model_spec:
             self.console.print("[warning]Uso: /model <proveedor>/<modelo>[/warning]")
-            self.console.print("[dim]Ejemplo: /model ollama/gemma:7b[/dim]")
+            self.console.print("[dim]Ejemplo: /model ollama/gemma2:2b[/dim]")
             return
         
         if "/" not in model_spec:

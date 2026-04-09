@@ -13,7 +13,7 @@ class NictichuCore:
     
     def __init__(
         self,
-        model_name: str = "gemma:7b",
+        model_name: str = "gemma2:2b",
         provider: str = "ollama",
         model_config: dict[str, Any] | None = None,
         mcp_config: dict[str, Any] | None = None
@@ -43,7 +43,9 @@ class NictichuCore:
         
         available = await self.model.is_available()
         if not available:
-            logger.warning(f"Modelo {self.model_name} no está disponible")
+            logger.warning(f"Modelo {self.model_name} no esta disponible")
+            logger.info("Para usar Ollama: instala Ollama desde https://ollama.com y ejecuta 'ollama pull gemma2:2b'")
+            logger.info("O cambia de modelo con: /model google_ai/gemini-pro")
         
         self.mcp_manager = MCPManager(self.mcp_config)
         await self.mcp_manager.initialize()
@@ -155,9 +157,10 @@ class NictichuCore:
                 client = self.mcp_manager.get_client(server_name)
                 if client:
                     tools_list = await client.list_tools()
+                    connected = await client.is_connected()
                     mcps.append({
                         "name": server_name,
-                        "active": client.is_connected(),
+                        "active": connected,
                         "tools": tools_list
                     })
         
