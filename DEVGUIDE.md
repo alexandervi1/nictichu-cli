@@ -29,7 +29,7 @@ cd C:\Users\Worsktation 2029\Documents\GitHub\nictichu-cli
 python -m src.main interactive
 
 # O con parámetros
-python -m src.main interactive --model gemma2:2b --provider ollama
+python -m src.main interactive --model gemma4:e2b --provider ollama
 ```
 
 ### Ejecutar Tests

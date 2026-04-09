@@ -13,7 +13,7 @@ class NictichuCore:
     
     def __init__(
         self,
-        model_name: str = "gemma2:2b",
+        model_name: str = "gemma4:e2b",
         provider: str = "ollama",
         model_config: dict[str, Any] | None = None,
         mcp_config: dict[str, Any] | None = None
@@ -44,7 +44,7 @@ class NictichuCore:
         available = await self.model.is_available()
         if not available:
             logger.warning(f"Modelo {self.model_name} no esta disponible")
-            logger.info("Para usar Ollama: instala Ollama desde https://ollama.com y ejecuta 'ollama pull gemma2:2b'")
+            logger.info("Para usar Ollama: instala Ollama desde https://ollama.com y ejecuta 'ollama pull gemma4:e2b'")
             logger.info("O cambia de modelo con: /model google_ai/gemini-pro")
         
         self.mcp_manager = MCPManager(self.mcp_config)

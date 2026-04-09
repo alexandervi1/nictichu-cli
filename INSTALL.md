@@ -67,7 +67,7 @@ python -m src.main interactive
 ```bash
 # Linux/Mac
 curl -fsSL https://ollama.com/install.sh | sh
-ollama pull gemma2:2b
+ollama pull gemma4:e2b
 
 # Windows - Descargar desde ollama.com
 ```

@@ -17,7 +17,7 @@ app = typer.Typer(
 
 @app.command()
 def interactive(
-    model: str = typer.Option("gemma2:2b", "--model", "-m", help="Modelo a usar"),
+    model: str = typer.Option("gemma4:e2b", "--model", "-m", help="Modelo a usar"),
     provider: str = typer.Option("ollama", "--provider", "-p", help="Proveedor"),
     config: Optional[str] = typer.Option(None, "--config", "-c", help="Archivo de configuración")
 ):

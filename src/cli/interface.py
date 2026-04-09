@@ -39,7 +39,7 @@ class NictichuCLI:
     
     def __init__(
         self,
-        model_name: str = "gemma2:2b",
+        model_name: str = "gemma4:e2b",
         provider: str = "ollama",
         config_path: str | None = None
     ):
@@ -295,7 +295,7 @@ class NictichuCLI:
         """Cambiar modelo."""
         if not model_spec:
             self.console.print("[warning]Uso: /model <proveedor>/<modelo>[/warning]")
-            self.console.print("[dim]Ejemplo: /model ollama/gemma2:2b[/dim]")
+            self.console.print("[dim]Ejemplo: /model ollama/gemma4:e2b[/dim]")
             return
         
         if "/" not in model_spec:

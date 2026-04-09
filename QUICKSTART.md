@@ -20,7 +20,7 @@ python -m src.main interactive
 python -c "from src import __version__; print(f'NictichuCLI {__version__}')"
 
 # Ejecutar con Ollama
-python -m src.main interactive --model gemma2:2b --provider ollama
+python -m src.main interactive --model gemma4:e2b --provider ollama
 
 # Ejecutar tests
 python -m pytest tests/ -v
