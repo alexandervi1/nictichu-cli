@@ -8,8 +8,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests: 94 passing](https://img.shields.io/badge/tests-94_passing-brightgreen.svg)]()
 
-**Paleta de colores: Cian/Turquesa (#06B6D4)**
-
 </div>
 
 ---
@@ -20,58 +18,108 @@
 ```
 Doble clic en install.bat
 ```
-Esto descarga, instala todo, configura el .env y crea un acceso directo en el escritorio.
+Instala Python, Git, Ollama, descarga el modelo `gemma4:e2b` y configura todo automáticamente.
 
 ### Linux / Mac
 ```bash
 chmod +x install.sh && ./install.sh
 ```
-Esto descarga, instala todo y agrega el comando `nictichu` al shell.
+Hace lo mismo y agrega el comando `nictichu` al shell.
 
 ### Ejecutar después de instalar
-- **Windows**: Doble clic en `run.bat` (o el acceso directo del escritorio)
+- **Windows**: Doble clic en `run.bat` o el acceso directo del escritorio
 - **Linux/Mac**: Escribe `nictichu` en la terminal
 
-### Opción A: Google AI (gratis, sin instalación)
+---
+
+## Proveedores de Modelo
+
+NictichuCLI funciona con o sin Ollama. Elige el que prefieras:
+
+### Opción 1: Ollama (local, gratuito, requiere 8GB+ RAM)
+
+El instalador descarga Ollama y el modelo automáticamente. Si lo quieres hacer manual:
 
 ```bash
-# 1. Obtén tu API key GRATIS en: https://aistudio.google.com/apikey
-# 2. Configura tu .env
-echo GOOGLE_AI_API_KEY=tu_api_key_aqui > .env
+# Instalar Ollama: https://ollama.com/download
+ollama pull gemma4:e2b          # 7.2 GB, corre en cualquier PC
+ollama pull gemma4:e4b          # 9.6 GB, más preciso
+ollama pull gemma4:26b          # 18 GB, requiere GPU buena
 
-# 3. Ejecuta
-python -m src.main interactive -p google_ai -m gemini-2.0-flash
-```
-
-### Opción B: Ollama (local, gratuito, requiere PC con 8GB+ RAM)
-
-```bash
-# 1. Instala Ollama desde https://ollama.com
-# 2. Descarga un modelo
-ollama pull gemma4:e2b
-
-# 3. Ejecuta
+# Ejecutar
 python -m src.main interactive
 ```
 
-### Ejecución con modelo específico
+### Opción 2: Google AI (cloud, gratuito, sin instalar nada)
+
+Funciona en cualquier PC sin Ollama. Solo necesitas una API key gratuita.
+
 ```bash
-# Google AI (recomendado, gratis y sin instalación)
+# 1. Obtén tu API key GRATIS en: https://aistudio.google.com/apikey
+# 2. Agrega a .env:
+echo GOOGLE_AI_API_KEY=tu_api_key >> .env
+# 3. Ejecuta:
 python -m src.main interactive -p google_ai -m gemini-2.0-flash
+```
+
+| Modelo | Tamaño | Precisión | Costo |
+|--------|--------|-----------|-------|
+| `gemma4:e2b` | 7.2 GB | Buena | Gratuito (local) |
+| `gemma4:e4b` | 9.6 GB | Muy buena | Gratuito (local) |
+| `gemini-2.0-flash` | Cloud | Muy buena | Gratuito (cloud) |
+| `gemini-2.5-flash` | Cloud | Excelente | Gratuito (cloud) |
+| `gemini-2.5-pro` | Cloud | Máxima | Gratuito (cloud) |
+
+### Fallback automático
+
+Si Ollama no está disponible y hay `GOOGLE_AI_API_KEY` en `.env`, la app **cambia automáticamente** a `google_ai/gemini-2.0-flash`.
+
+---
+
+## Comandos CLI
+
+```bash
+# Ver ayuda
+python -m src.main --help
+
+# Ver versión
+python -m src.main version
+
+# Iniciar CLI (usa proveedor por defecto)
+python -m src.main interactive
 
 # Ollama (local)
 python -m src.main interactive -p ollama -m gemma4:e2b
 
+# Google AI (cloud, gratuito)
+python -m src.main interactive -p google_ai -m gemini-2.0-flash
+
 # Vertex AI (Google Cloud)
 python -m src.main interactive -p vertex_ai -m gemini-pro
 ```
+
+### Comandos Interactivos
+
+| Comando | Descripción |
+|---------|-------------|
+| `/help` | Muestra ayuda |
+| `/tools` | Lista herramientas disponibles |
+| `/mcps` | Lista servidores MCP |
+| `/model <proveedor>/<modelo>` | Cambia el modelo actual |
+| `/status` | Muestra estado del agente |
+| `/clear` | Limpia contexto |
+| `/save` | Guarda conversación |
+| `/load` | Carga conversación |
+| `/exit` | Sale del CLI |
+
+---
 
 ## Características Principales
 
 ### Multi-Modelo
 | Proveedor | Modelos | Costo | Estado |
 |-----------|---------|-------|--------|
-| **Ollama** | gemma4:e2b, llama3, mistral, codellama | Gratuito (local) | ✅ |
+| **Ollama** | gemma4:e2b, gemma4:e4b, llama3, mistral, codellama | Gratuito (local) | ✅ |
 | **Google AI** | gemini-2.0-flash, gemini-2.5-flash, gemini-2.5-pro | Gratuito (cloud) | ✅ |
 | **Vertex AI** | Gemini en Google Cloud | De pago | ✅ |
 
@@ -94,127 +142,128 @@ python -m src.main interactive -p vertex_ai -m gemini-pro
 ### CLI Interactivo
 - **Rich UI**: Tablas, paneles, syntax highlighting
 - **Prompt Toolkit**: Auto-completado, historial, edición multilínea
-- **Comandos especiales**: `/help`, `/tools`, `/mcps`, `/model`, `/status`, `/clear`, `/exit`
+- **Fallback automático**: Si Ollama no está, usa Google AI
 - **Streaming**: Respuestas en tiempo real
 - **Contexto**: Historial de conversación con límite de tokens
 
-## Comandos CLI
-
-```powershell
-# Ver ayuda
-python -m src.main --help
-
-# Ver versión
-python -m src.main version
-
-# Iniciar CLI interactivo
-python -m src.main interactive
-
-# Con modelo específico
-python -m src.main interactive --model gemma4:e2b --provider ollama
-
-# Con Google AI Studio
-python -m src.main interactive --model gemini-pro --provider google
-
-# Con Vertex AI
-python -m src.main interactive --model gemini --provider vertex
-```
-
-### Comandos Interactivos
-
-| Comando | Descripción |
-|---------|-------------|
-| `/help` | Muestra ayuda |
-| `/tools` | Lista herramientas disponibles |
-| `/mcps` | Lista servidores MCP |
-| `/model <nombre>` | Cambia el modelo actual |
-| `/status` | Muestra estado del agente |
-| `/clear` | Limpia contexto |
-| `/exit` | Sale del CLI |
+---
 
 ## Configuración
 
 Crea un archivo `.env` en la raíz del proyecto:
 
 ```bash
-# Ollama (local - gratuito)
+# ============================================================
+# PROVEEDORES DE MODELO (elige uno o varios)
+# ============================================================
+
+# --- Opción 1: Ollama (local, gratuito, requiere 8GB+ RAM) ---
+# 1. Instala Ollama: https://ollama.com
+# 2. Descarga un modelo: ollama pull gemma4:e2b
 OLLAMA_BASE_URL=http://localhost:11434
 
-# Google AI Studio
+# --- Opción 2: Google AI Studio (cloud, GRATUITO, sin instalar nada) ---
+# 1. Obtén tu API key GRATIS en: https://aistudio.google.com/apikey
+# 2. Pega tu key abajo
 GOOGLE_AI_API_KEY=tu_api_key_aqui
 
-# Vertex AI
-GOOGLE_CLOUD_PROJECT=tu_proyecto_id
-GOOGLE_CLOUD_LOCATION=us-central1
+# --- Opción 3: Vertex AI (cloud, requiere Google Cloud) ---
+# GOOGLE_CLOUD_PROJECT=tu_proyecto_id
+# GOOGLE_CLOUD_LOCATION=us-central1
+
+# ============================================================
+# CONFIGURACIÓN GENERAL
+# ============================================================
+LOG_LEVEL=INFO
 ```
+
+---
 
 ## Estructura del Proyecto
 
 ```
 nictichu-cli/
 ├── src/
-│   ├── __init__.py
 │   ├── main.py                  # Punto de entrada
 │   ├── core/
-│   │   ├── __init__.py
 │   │   ├── context.py           # Gestión de contexto
-│   │   └── core.py              # Núcleo del agente
+│   │   └── core.py              # Núcleo del agente + fallback automático
 │   ├── models/
-│   │   ├── __init__.py
 │   │   ├── base.py              # Clase base
-│   │   ├── registry.py          # Registro de modelos
+│   │   ├── registry.py          # Registro de modelos (auto-registra providers)
 │   │   ├── ollama.py            # Proveedor Ollama
-│   │   ├── google_ai.py         # Proveedor Google AI
+│   │   ├── google_ai.py         # Proveedor Google AI (HTTP directo, sin SDK)
 │   │   └── vertex_ai.py         # Proveedor Vertex AI
 │   ├── mcps/
-│   │   ├── __init__.py
 │   │   ├── client.py            # Cliente base
-│   │   ├── manager.py           # Gestor MCP
+│   │   ├── manager.py           # Gestor MCP (filesystem por defecto)
 │   │   └── servers/
-│   │       ├── __init__.py
 │   │       ├── filesystem.py    # MCP Filesystem
 │   │       ├── shell.py         # MCP Shell
 │   │       ├── memory.py        # MCP Memory
 │   │       └── search.py        # MCP Search
 │   ├── tools/
-│   │   ├── __init__.py
 │   │   ├── editor.py            # Editor de código
 │   │   ├── reviewer.py          # Reviewer de código
-│   │   ├── tester.py            # Runner de tests
+│   │   ├── tester.py            # Runner de tests (PytestRunner)
 │   │   └── docs.py              # Generador de docs
 │   ├── cli/
-│   │   ├── __init__.py
-│   │   ├── interface.py          # CLI principal
-│   │   ├── conversation.py      # Loop de conversación
+│   │   ├── interface.py         # CLI principal (banner + provider info)
+│   │   ├── conversation.py      # Loop de conversación + tool dispatch
 │   │   └── commands.py          # Manejador de comandos
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   ├── config.py            # Configuración
-│   │   └── logger.py            # Logger
-│   ├── plugins/                  # TODO: Sistema de plugins
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   └── registry.py
-│   └── storage/                  # TODO: Persistencia SQLite
-│       ├── __init__.py
-│       ├── database.py
-│       └── models.py
+│   └── utils/
+│       ├── config.py            # Configuración (.env + YAML)
+│       └── logger.py            # Logger
 ├── config/
-│   ├── settings.yaml            # Configuración general
-│   └── models.yaml              # Configuración de modelos
-├── tests/                       # Suite de tests
-├── pyproject.toml               # Configuración del proyecto
-├── requirements.txt             # Dependencias
-├── pytest.ini                  # Configuración de pytest
-├── Makefile                     # Comandos make
-└── run.bat                      # Script de ejecución
+│   └── settings.yaml            # Configuración general
+├── tests/                        # 94 tests pasando
+├── install.bat                   # Instalador Windows (1 clic)
+├── install.sh                    # Instalador Linux/Mac (1 clic)
+├── run.bat                       # Ejecutar en Windows
+├── run.sh                        # Ejecutar en Linux/Mac
+├── .env.example                  # Template de configuración
+└── pyproject.toml                # Dependencias
 ```
+
+---
+
+## Ejemplo de Uso
+
+```
+[gemma4:e2b] > /help
+Comandos disponibles:
+  /help     - Muestra esta ayuda
+  /tools    - Lista herramientas disponibles
+  /mcps     - Lista servidores MCP
+  /model    - Cambia el modelo actual
+  /status   - Muestra estado del agente
+  /clear    - Limpia contexto
+  /save     - Guarda conversación
+  /load     - Carga conversación
+  /exit     - Sale del CLI
+
+[gemma4:e2b] > /tools
+Herramientas disponibles:
+  - editor: Leer y editar archivos
+  - reviewer: Analizar código
+  - tester: Ejecutar tests
+  - docs: Generar documentación
+
+[gemma4:e2b] > /model google_ai/gemini-2.0-flash
+Modelo cambiado a: google_ai/gemini-2.0-flash
+
+[gemini-2.0-flash] > Lee el archivo src/main.py y explícame qué hace
+[Streaming response...]
+```
+
+---
 
 ## Desarrollo
 
-```powershell
+```bash
 # Activar entorno
-.\venv\Scripts\activate
+source venv/bin/activate   # Linux/Mac
+.\venv\Scripts\activate    # Windows
 
 # Ejecutar tests
 python -m pytest tests/ -v
@@ -229,42 +278,21 @@ black src/
 mypy src/
 ```
 
-## Dependencias Principales
-
-```
-pydantic>=2.0          # Validación de datos
-rich>=13.0             # UI enriquecida
-prompt_toolkit>=3.0    # CLI interactivo
-typer>=0.9             # Framework CLI
-httpx>=0.25            # Cliente HTTP asíncrono
-aiosqlite>=0.19        # SQLite asíncrono
-loguru>=0.7            # Logging
-pytest>=7.0            # Testing
-```
-
-## Documentación
-
-| Documento | Descripción |
-|-----------|-------------|
-| **[QUICKSTART.md](QUICKSTART.md)** | Inicio rápido |
-| **[DEVGUIDE.md](DEVGUIDE.md)** | Guía de desarrollo |
-| **[INSTALL.md](INSTALL.md)** | Instalación detallada |
-| **[TEST_REPORT.md](TEST_REPORT.md)** | Reporte de tests |
-| **[CHANGELOG.md](CHANGELOG.md)** | Historial de cambios |
+---
 
 ## Estado del Proyecto
 
 ### Completado ✅
 - [x] Estructura del proyecto
 - [x] Core del agente (ContextManager, NictichuCore)
-- [x] Registro de modelos (ModelRegistry)
-- [x] Tres proveedores de modelos (Ollama, Google AI, Vertex AI)
+- [x] Registro de modelos con auto-registro de providers
+- [x] Tres proveedores (Ollama, Google AI, Vertex AI)
+- [x] Fallback automático Ollama → Google AI
+- [x] Google AI via HTTP directo (sin SDK)
 - [x] Cuatro servidores MCP (Filesystem, Shell, Memory, Search)
 - [x] Cuatro herramientas de código (Editor, Reviewer, Tester, Docs)
 - [x] CLI interactivo con Rich y Prompt Toolkit
-- [x] Sistema de comandos especiales
-- [x] Integración de tool calling
-- [x] Streaming de respuestas
+- [x] Instalador 1-clic (Ollama + modelo incluido)
 - [x] Suite de tests (94 tests pasando)
 
 ### En Progreso 🚧
@@ -278,54 +306,19 @@ pytest>=7.0            # Testing
 - [ ] Integración con IDEs
 - [ ] Async/await completo
 
-## Ejecución Rápida
+---
 
-### Windows
-```powershell
-.\run.bat
-```
+## Documentación
 
-O manualmente:
-```powershell
-.\venv\Scripts\activate
-python -m src.main interactive
-```
+| Documento | Descripción |
+|-----------|-------------|
+| **[QUICKSTART.md](QUICKSTART.md)** | Inicio rápido |
+| **[DEVGUIDE.md](DEVGUIDE.md)** | Guía de desarrollo |
+| **[INSTALL.md](INSTALL.md)** | Instalación detallada |
+| **[TEST_REPORT.md](TEST_REPORT.md)** | Reporte de tests |
+| **[CHANGELOG.md](CHANGELOG.md)** | Historial de cambios |
 
-## Ejemplo de Uso
-
-```
-nichtichu> /help
-Comandos disponibles:
-  /help     - Muestra esta ayuda
-  /tools    - Lista herramientas disponibles
-  /mcps     - Lista servidores MCP
-  /model    - Cambia el modelo actual
-  /status   - Muestra estado del agente
-  /clear    - Limpia contexto
-  /exit     - Sale del CLI
-
-nichtichu> /tools
-Herramientas disponibles:
-  - editor: Leer y editar archivos
-  - reviewer: Analizar código
-  - tester: Ejecutar tests
-  - docs: Generar documentación
-
-nichtichu> /model gemini-pro
-Modelo cambiado a: gemini-pro
-
-nichtichu> Lee el archivo src/main.py y explícame qué hace
-[Streaming response...]
-```
-
-## Contribuir
-
-Ver [CONTRIBUTING.md](CONTRIBUTING.md) para:
-
-- Reportar bugs
-- Solicitar features
-- Enviar pull requests
-- Guía de estilo de código
+---
 
 ## Licencia
 
