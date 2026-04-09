@@ -73,26 +73,11 @@ class DocGeneratorTool:
         imports = self._extract_imports(content)
         
         if format == "markdown":
-            return self._format_module_markdown(
-                file_path.name,
-                imports,
-                functions,
-                classes
-            )
+            return self._format_module_markdown(file_path.name, imports, functions, classes)
         elif format == "rst":
-            return self._format_module_rst(
-                file_path.name,
-                imports,
-                functions,
-                classes
-            )
+            return self._format_module_rst(file_path.name, imports, functions, classes)
         else:
-            return self._format_module_text(
-                file_path.name,
-                imports,
-                functions,
-                classes
-            )
+            return self._format_module_text(file_path.name, imports, functions, classes)
     
     async def generate_class_doc(
         self,
@@ -159,7 +144,6 @@ class DocGeneratorTool:
         
         readme_content = "# Project Name\n\n"
         readme_content += "Description of the project.\n\n"
-        
         readme_content += "## Installation\n\n"
         readme_content += "```bash\n"
         readme_content += "pip install -r requirements.txt\n"
@@ -174,7 +158,6 @@ class DocGeneratorTool:
         readme_content += "## Features\n\n"
         readme_content += "- Feature 1\n"
         readme_content += "- Feature 2\n\n"
-        
         readme_content += "## License\n\n"
         readme_content += "MIT License\n"
         
@@ -232,4 +215,12 @@ class DocGeneratorTool:
         imports = []
         
         import_pattern = r"^import\s+.*$"
-        from_pattern = r"^from\s+.*im
+        from_pattern = r"^from\s+.*import\s+.*$"
+        
+        for line in content.split("\n"):
+            if re.match(import_pattern, line) or re.match(from_pattern, line):
+                imports.append(line.strip())
+        
+        return imports
+    
+    def _extract_docstr
