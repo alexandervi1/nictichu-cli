@@ -32,25 +32,48 @@ Esto descarga, instala todo y agrega el comando `nictichu` al shell.
 - **Windows**: Doble clic en `run.bat` (o el acceso directo del escritorio)
 - **Linux/Mac**: Escribe `nictichu` en la terminal
 
-### Instalación manual
+### Opción A: Google AI (gratis, sin instalación)
+
 ```bash
-git clone https://github.com/alexandervi1/nictichu-cli.git
-cd nictichu-cli
-python -m venv venv
-source venv/bin/activate  # Linux/Mac | venv\Scripts\activate (Windows)
-pip install -e .
-cp .env.example .env      # configurar API keys
+# 1. Obtén tu API key GRATIS en: https://aistudio.google.com/apikey
+# 2. Configura tu .env
+echo GOOGLE_AI_API_KEY=tu_api_key_aqui > .env
+
+# 3. Ejecuta
+python -m src.main interactive -p google_ai -m gemini-2.0-flash
+```
+
+### Opción B: Ollama (local, gratuito, requiere PC con 8GB+ RAM)
+
+```bash
+# 1. Instala Ollama desde https://ollama.com
+# 2. Descarga un modelo
+ollama pull gemma4:e2b
+
+# 3. Ejecuta
 python -m src.main interactive
+```
+
+### Ejecución con modelo específico
+```bash
+# Google AI (recomendado, gratis y sin instalación)
+python -m src.main interactive -p google_ai -m gemini-2.0-flash
+
+# Ollama (local)
+python -m src.main interactive -p ollama -m gemma4:e2b
+
+# Vertex AI (Google Cloud)
+python -m src.main interactive -p vertex_ai -m gemini-pro
 ```
 
 ## Características Principales
 
 ### Multi-Modelo
-| Proveedor | Modelos | Estado |
-|-----------|---------|--------|
-| **Ollama** | gemma4:e2b (liviano), gemma4:12b, llama3, codellama, mistral | ✅ Implementado |
-| **Google AI Studio** | gemini-pro, gemini-1.5-pro | ✅ Implementado |
-| **Vertex AI** | Gemini en Google Cloud | ✅ Implementado |
+| Proveedor | Modelos | Costo | Estado |
+|-----------|---------|-------|--------|
+| **Ollama** | gemma4:e2b, llama3, mistral, codellama | Gratuito (local) | ✅ |
+| **Google AI** | gemini-2.0-flash, gemini-2.5-flash, gemini-2.5-pro | Gratuito (cloud) | ✅ |
+| **Vertex AI** | Gemini en Google Cloud | De pago | ✅ |
 
 ### MCPs (Model Context Protocol)
 | Servidor | Funcionalidades |

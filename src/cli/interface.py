@@ -17,7 +17,7 @@ from prompt_toolkit.styles import Style as PromptStyle
 
 from ..core.core import NictichuCore
 from ..utils.logger import get_logger
-from ..utils.config import load_config
+from ..utils.config import load_config, get_settings
 from .conversation import ConversationLoop
 from .commands import CommandHandler
 
@@ -85,9 +85,21 @@ class NictichuCLI:
         self.console.print("\n[dim]Inicializando...[/dim]")
         
         with self.console.status("[bold cyan]Cargando modelo y herramientas...[/bold cyan]") as status:
+            settings = get_settings()
+            model_config = {}
+            
+            if self.provider == "google_ai" and settings.google_ai_api_key:
+                model_config["api_key"] = settings.google_ai_api_key
+            elif self.provider == "ollama" and settings.ollama_base_url:
+                model_config["base_url"] = settings.ollama_base_url
+            elif self.provider == "vertex_ai" and settings.google_cloud_project:
+                model_config["project"] = settings.google_cloud_project
+                model_config["location"] = settings.google_cloud_location
+            
             self.core = NictichuCore(
                 model_name=self.model_name,
-                provider=self.provider
+                provider=self.provider,
+                model_config=model_config
             )
             await self.core.initialize()
             
@@ -108,7 +120,8 @@ class NictichuCLI:
         
         self.running = True
         
-        self.console.print("\n[bold green]✓[/bold green] Sistema listo")
+        provider_info = f"{self.core.provider}/{self.core.model_name}"
+        self.console.print(f"\n[bold green]✓[/bold green] Sistema listo [dim]({provider_info})[/dim]")
         self._show_help()
     
     def _get_prompt(self) -> str:

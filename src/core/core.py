@@ -1,4 +1,5 @@
 from typing import Any
+import os
 
 from ..models.base import BaseModel
 from ..models.registry import get_registry
@@ -32,10 +33,22 @@ class NictichuCore:
         
         registry = get_registry()
         
+        config = self.model_config.copy()
+        
+        if self.provider == "google_ai" and not config.get("api_key"):
+            api_key = os.environ.get("GOOGLE_AI_API_KEY", "")
+            if api_key:
+                config["api_key"] = api_key
+        
+        if self.provider == "vertex_ai" and not config.get("project"):
+            project = os.environ.get("GOOGLE_CLOUD_PROJECT", "")
+            if project:
+                config["project"] = project
+        
         self.model = registry.create_model(
             provider=self.provider,
             model_id=self.model_name,
-            config=self.model_config
+            config=config
         )
         
         if self.model is None:
@@ -44,8 +57,27 @@ class NictichuCore:
         available = await self.model.is_available()
         if not available:
             logger.warning(f"Modelo {self.model_name} no esta disponible")
-            logger.info("Para usar Ollama: instala Ollama desde https://ollama.com y ejecuta 'ollama pull gemma4:e2b'")
-            logger.info("O cambia de modelo con: /model google_ai/gemini-pro")
+            
+            if self.provider == "ollama":
+                google_key = os.environ.get("GOOGLE_AI_API_KEY", "")
+                if google_key:
+                    logger.info("Intentando fallback a Google AI (Gemini)...")
+                    self.provider = "google_ai"
+                    self.model_name = "gemini-2.0-flash"
+                    self.model = registry.create_model(
+                        provider="google_ai",
+                        model_id=self.model_name,
+                        config={"api_key": google_key}
+                    )
+                    if self.model and await self.model.is_available():
+                        logger.info(f"Fallback exitoso: usando {self.provider}/{self.model_name}")
+                    else:
+                        logger.info("Para usar Ollama: instala desde https://ollama.com y ejecuta 'ollama pull gemma4:e2b'")
+                        logger.info("Para usar Google AI (gratis): agrega GOOGLE_AI_API_KEY a tu archivo .env")
+                else:
+                    logger.info("Para usar Ollama: instala desde https://ollama.com y ejecuta 'ollama pull gemma4:e2b'")
+                    logger.info("Para usar Google AI (gratis): obtiene tu API key en https://aistudio.google.com/apikey")
+                    logger.info("  Luego agrega GOOGLE_AI_API_KEY=tu_key al archivo .env")
         
         self.mcp_manager = MCPManager(self.mcp_config)
         await self.mcp_manager.initialize()
