@@ -84,9 +84,14 @@ class NictichuCore:
         
         logger.info(f"Ejecutando herramienta: {tool_name}")
         
-        result = await self.mcp_manager.call_tool(tool_name, arguments)
+        for server_name in self.mcp_manager.get_available_servers():
+            try:
+                result = await self.mcp_manager.call_tool(server_name, tool_name, arguments)
+                return result
+            except Exception:
+                continue
         
-        return result
+        raise ValueError(f"Herramienta no encontrada: {tool_name}")
     
     async def shutdown(self) -> None:
         """Cerrar conexiones y limpiar recursos."""
@@ -96,3 +101,115 @@ class NictichuCore:
             await self.mcp_manager.shutdown()
         
         logger.info("NictichuCLI cerrado correctamente")
+    
+    async def initialize_mcps(self) -> None:
+        """Inicializar MCP servers."""
+        if self.mcp_manager:
+            await self.mcp_manager.initialize()
+            logger.info("MCP servers inicializados")
+    
+    async def get_available_tools(self) -> list[dict[str, Any]]:
+        """Obtener lista de herramientas disponibles."""
+        tools = []
+        
+        from ..tools.editor import CodeEditorTool
+        from ..tools.reviewer import CodeReviewerTool
+        from ..tools.tester import TestRunnerTool
+        from ..tools.docs import DocGeneratorTool
+        
+        code_tools = [
+            CodeEditorTool(),
+            CodeReviewerTool(),
+            TestRunnerTool(),
+            DocGeneratorTool(),
+        ]
+        
+        for tool in code_tools:
+            for tool_def in tool.list_tools():
+                tools.append({
+                    "name": f"code_{tool_def['name']}",
+                    "description": tool_def["description"],
+                    "parameters": tool_def.get("parameters", {})
+                })
+        
+        if self.mcp_manager:
+            for server_name in self.mcp_manager.get_available_servers():
+                client = self.mcp_manager.get_client(server_name)
+                if client:
+                    tools_list = await client.list_tools()
+                    for tool_def in tools_list:
+                        tools.append({
+                            "name": f"{server_name}_{tool_def['name']}",
+                            "description": tool_def["description"],
+                            "parameters": tool_def.get("parameters", {})
+                        })
+        
+        return tools
+    
+    async def get_active_mcps(self) -> list[dict[str, Any]]:
+        """Obtener lista de MCP servers activos."""
+        mcps = []
+        
+        if self.mcp_manager:
+            for server_name in self.mcp_manager.get_available_servers():
+                client = self.mcp_manager.get_client(server_name)
+                if client:
+                    tools_list = await client.list_tools()
+                    mcps.append({
+                        "name": server_name,
+                        "active": client.is_connected(),
+                        "tools": tools_list
+                    })
+        
+        return mcps
+    
+    async def change_model(self, provider: str, model_id: str) -> None:
+        """Cambiar modelo activo."""
+        registry = get_registry()
+        
+        self.model = registry.create_model(
+            provider=provider,
+            model_id=model_id,
+            config=self.model_config
+        )
+        
+        if self.model is None:
+            raise ValueError(f"No se pudo crear modelo {provider}/{model_id}")
+        
+        self.provider = provider
+        self.model_name = model_id
+        
+        logger.info(f"Modelo cambiado a {provider}/{model_id}")
+    
+    async def get_status(self) -> dict[str, dict[str, Any]]:
+        """Obtener estado del sistema."""
+        status = {}
+        
+        status["model"] = {
+            "ok": self.model is not None,
+            "details": f"{self.provider}/{self.model_name}" if self.model else "No inicializado"
+        }
+        
+        status["mcp_manager"] = {
+            "ok": self.mcp_manager is not None,
+            "details": "Inicializado" if self.mcp_manager else "No inicializado"
+        }
+        
+        if self.mcp_manager:
+            mcp_count = len(self.mcp_manager.get_available_servers())
+            status["mcp_servers"] = {
+                "ok": True,
+                "details": f"{mcp_count} servers activos"
+            }
+        
+        tools = await self.get_available_tools()
+        status["tools"] = {
+            "ok": len(tools) > 0,
+            "details": f"{len(tools)} herramientas disponibles"
+        }
+        
+        return status
+    
+    async def cleanup(self) -> None:
+        """Limpiar recursos."""
+        await self.shutdown()

@@ -13,10 +13,12 @@ class ContextManager:
     def __init__(
         self,
         max_history: int = 50,
-        max_context_length: int = 100000
+        max_context_length: int = 100000,
+        max_tokens: int = 4096
     ):
         self.max_history = max_history
         self.max_context_length = max_context_length
+        self.max_tokens = max_tokens
         self.history: deque = deque(maxlen=max_history)
         self.metadata: dict[str, Any] = {}
     
@@ -122,3 +124,9 @@ class ContextManager:
             "newest_message": self.history[-1]["timestamp"] if self.history else None,
             "metadata_keys": list(self.metadata.keys())
         }
+    
+    def get_token_count(self) -> int:
+        """Estimar número de tokens en el contexto."""
+        total_chars = self.get_context_length()
+        estimated_tokens = total_chars // 4
+        return estimated_tokens

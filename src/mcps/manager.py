@@ -104,3 +104,11 @@ class MCPManager:
                 logger.error(f"Error cerrando cliente {server_name}: {e}")
         
         self.clients.clear()
+    
+    def get_available_servers(self) -> list[str]:
+        """Obtener lista de servidores disponibles."""
+        return list(self.clients.keys())
+    
+    def get_client(self, server_name: str) -> MCPClient | None:
+        """Obtener cliente por nombre de servidor."""
+        return self.clients.get(server_name)

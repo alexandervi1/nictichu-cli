@@ -18,16 +18,30 @@ app = typer.Typer(
 @app.command()
 def interactive(
     model: str = typer.Option("gemma:7b", "--model", "-m", help="Modelo a usar"),
-    provider: str = typer.Option("ollama", "--provider", "-p", help="Proveedor")
+    provider: str = typer.Option("ollama", "--provider", "-p", help="Proveedor"),
+    config: Optional[str] = typer.Option(None, "--config", "-c", help="Archivo de configuración")
 ):
     """Iniciar CLI interactivo."""
     setup_logger()
-    logger.info(f"Iniciando NictichuCLI con {model} ({provider})")
-    typer.echo(f"\n🎨 NictichuCLI v0.1.0")
-    typer.echo(f"   Modelo: {model}")
-    typer.echo(f"   Proveedor: {provider}")
-    typer.echo("\n¡Bienvenido! El proyecto está listo para usar.")
-    typer.echo("Para más información, consulta el README.md")
+    
+    try:
+        from .cli.interface import NictichuCLI
+        
+        cli = NictichuCLI(
+            model_name=model,
+            provider=provider,
+            config_path=config
+        )
+        
+        asyncio.run(cli.run())
+    
+    except KeyboardInterrupt:
+        logger.info("Interumpido por el usuario")
+        sys.exit(0)
+    except Exception as e:
+        logger.exception(f"Error: {e}")
+        typer.echo(f"\n[ERROR] {e}", err=True)
+        sys.exit(1)
 
 
 @app.command()
