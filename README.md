@@ -2,10 +2,11 @@
 
 <div align="center">
 
-**Agente de código multi-modelo con MCPs y Gemma**
+**Agente de código multi-modelo con MCPs, herramientas de desarrollo y streaming**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests: 94 passing](https://img.shields.io/badge/tests-94_passing-brightgreen.svg)]()
 
 **Paleta de colores: Cian/Turquesa (#06B6D4)**
 
@@ -16,30 +17,52 @@
 ## Instalación Rápida
 
 ```powershell
-# 1. Clonar (ya hecho)
+# 1. Clonar repositorio
 cd C:\Users\Worsktation 2029\Documents\GitHub\nictichu-cli
 
 # 2. Activar entorno virtual
 .\venv\Scripts\activate
 
-# 3. Instalar (ya hecho)
+# 3. Instalar dependencias
 pip install -e .
 
-# 4. Ejecutar
+# 4. Ejecutar CLI interactivo
 python -m src.main interactive
 ```
 
-## Ejecución Fácil
+## Características Principales
 
-### Windows
+### Multi-Modelo
+| Proveedor | Modelos | Estado |
+|-----------|---------|--------|
+| **Ollama** | gemma:7b, llama3, codellama, mistral | ✅ Implementado |
+| **Google AI Studio** | gemini-pro, gemini-1.5-pro | ✅ Implementado |
+| **Vertex AI** | Gemini en Google Cloud | ✅ Implementado |
 
-Doble click en `run.bat` o:
+### MCPs (Model Context Protocol)
+| Servidor | Funcionalidades |
+|----------|----------------|
+| **Filesystem** | Leer/escribir archivos, listar directorios, buscar |
+| **Shell** | Ejecutar comandos de terminal |
+| **Memory** | Memoria conversacional persistente |
+| **Search** | Búsqueda web y en código |
 
-```powershell
-.\run.bat
-```
+### Herramientas de Código
+| Herramienta | Funcionalidades |
+|-------------|----------------|
+| **Editor** | Leer/editar archivos, búsqueda y reemplazo |
+| **Reviewer** | Análisis de código, detección de bugs, seguridad |
+| **Tester** | Ejecutar tests, coverage, linting |
+| **Docs** | Generar documentación automática |
 
-### Comandos Disponibles
+### CLI Interactivo
+- **Rich UI**: Tablas, paneles, syntax highlighting
+- **Prompt Toolkit**: Auto-completado, historial, edición multilínea
+- **Comandos especiales**: `/help`, `/tools`, `/mcps`, `/model`, `/status`, `/clear`, `/exit`
+- **Streaming**: Respuestas en tiempo real
+- **Contexto**: Historial de conversación con límite de tokens
+
+## Comandos CLI
 
 ```powershell
 # Ver ayuda
@@ -53,50 +76,102 @@ python -m src.main interactive
 
 # Con modelo específico
 python -m src.main interactive --model gemma:7b --provider ollama
+
+# Con Google AI Studio
+python -m src.main interactive --model gemini-pro --provider google
+
+# Con Vertex AI
+python -m src.main interactive --model gemini --provider vertex
 ```
 
-## Características
+### Comandos Interactivos
 
-- **Multi-modelo**: Ollama, Google AI Studio, Vertex AI
-- **MCPs**: Filesystem, Shell, Memory, Web Search
-- **CLI Interactivo**: Rich + Prompt Toolkit
-- **Paleta de colores**: Cian (#06B6D4)
+| Comando | Descripción |
+|---------|-------------|
+| `/help` | Muestra ayuda |
+| `/tools` | Lista herramientas disponibles |
+| `/mcps` | Lista servidores MCP |
+| `/model <nombre>` | Cambia el modelo actual |
+| `/status` | Muestra estado del agente |
+| `/clear` | Limpia contexto |
+| `/exit` | Sale del CLI |
 
 ## Configuración
 
-Edita `.env` con tus API keys:
+Crea un archivo `.env` en la raíz del proyecto:
 
 ```bash
 # Ollama (local - gratuito)
 OLLAMA_BASE_URL=http://localhost:11434
 
 # Google AI Studio
-GOOGLE_AI_API_KEY=tu_api_key
+GOOGLE_AI_API_KEY=tu_api_key_aqui
 
 # Vertex AI
 GOOGLE_CLOUD_PROJECT=tu_proyecto_id
+GOOGLE_CLOUD_LOCATION=us-central1
 ```
 
-## Documentación
-
-- **[QUICKSTART.md](QUICKSTART.md)** - Inicio rápido
-- **[DEVGUIDE.md](DEVGUIDE.md)** - Guía de desarrollo
-- **[INSTALL.md](INSTALL.md)** - Instalación detallada
-
-## Estructura
+## Estructura del Proyecto
 
 ```
 nictichu-cli/
-├── src/          # Código fuente
-│   ├── core/     # Núcleo del agente
-│   ├── models/   # Proveedores de modelos
-│   ├── mcps/     # Servidores MCP
-│   ├── tools/    # Herramientas
-│   ├── cli/      # Interfaz CLI
-│   └── utils/    # Utilidades
-├── config/       # Configuración
-├── tests/        # Tests
-└── examples/     # Ejemplos
+├── src/
+│   ├── __init__.py
+│   ├── main.py                  # Punto de entrada
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── context.py           # Gestión de contexto
+│   │   └── core.py              # Núcleo del agente
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── base.py              # Clase base
+│   │   ├── registry.py          # Registro de modelos
+│   │   ├── ollama.py            # Proveedor Ollama
+│   │   ├── google_ai.py         # Proveedor Google AI
+│   │   └── vertex_ai.py         # Proveedor Vertex AI
+│   ├── mcps/
+│   │   ├── __init__.py
+│   │   ├── client.py            # Cliente base
+│   │   ├── manager.py           # Gestor MCP
+│   │   └── servers/
+│   │       ├── __init__.py
+│   │       ├── filesystem.py    # MCP Filesystem
+│   │       ├── shell.py         # MCP Shell
+│   │       ├── memory.py        # MCP Memory
+│   │       └── search.py        # MCP Search
+│   ├── tools/
+│   │   ├── __init__.py
+│   │   ├── editor.py            # Editor de código
+│   │   ├── reviewer.py          # Reviewer de código
+│   │   ├── tester.py            # Runner de tests
+│   │   └── docs.py              # Generador de docs
+│   ├── cli/
+│   │   ├── __init__.py
+│   │   ├── interface.py          # CLI principal
+│   │   ├── conversation.py      # Loop de conversación
+│   │   └── commands.py          # Manejador de comandos
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── config.py            # Configuración
+│   │   └── logger.py            # Logger
+│   ├── plugins/                  # TODO: Sistema de plugins
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   └── registry.py
+│   └── storage/                  # TODO: Persistencia SQLite
+│       ├── __init__.py
+│       ├── database.py
+│       └── models.py
+├── config/
+│   ├── settings.yaml            # Configuración general
+│   └── models.yaml              # Configuración de modelos
+├── tests/                       # Suite de tests
+├── pyproject.toml               # Configuración del proyecto
+├── requirements.txt             # Dependencias
+├── pytest.ini                  # Configuración de pytest
+├── Makefile                     # Comandos make
+└── run.bat                      # Script de ejecución
 ```
 
 ## Desarrollo
@@ -108,20 +183,113 @@ nictichu-cli/
 # Ejecutar tests
 python -m pytest tests/ -v
 
+# Ejecutar tests con coverage
+python -m pytest tests/ -v --cov=src --cov-report=html
+
 # Formatear código
-# pip install black (si no está instalado)
-# black src/
+black src/
 
 # Type checking
-# pip install mypy (si no está instalado)
-# mypy src/
+mypy src/
 ```
 
-## Siguientes Pasos
+## Dependencias Principales
 
-1.	Configurar `.env` con tus API keys
-2.	Ejecutar `.\run.bat` o `python -m src.main interactive`
-3.	Empezar a desarrollar
+```
+pydantic>=2.0          # Validación de datos
+rich>=13.0             # UI enriquecida
+prompt_toolkit>=3.0    # CLI interactivo
+typer>=0.9             # Framework CLI
+httpx>=0.25            # Cliente HTTP asíncrono
+aiosqlite>=0.19        # SQLite asíncrono
+loguru>=0.7            # Logging
+pytest>=7.0            # Testing
+```
+
+## Documentación
+
+| Documento | Descripción |
+|-----------|-------------|
+| **[QUICKSTART.md](QUICKSTART.md)** | Inicio rápido |
+| **[DEVGUIDE.md](DEVGUIDE.md)** | Guía de desarrollo |
+| **[INSTALL.md](INSTALL.md)** | Instalación detallada |
+| **[TEST_REPORT.md](TEST_REPORT.md)** | Reporte de tests |
+| **[CHANGELOG.md](CHANGELOG.md)** | Historial de cambios |
+
+## Estado del Proyecto
+
+### Completado ✅
+- [x] Estructura del proyecto
+- [x] Core del agente (ContextManager, NictichuCore)
+- [x] Registro de modelos (ModelRegistry)
+- [x] Tres proveedores de modelos (Ollama, Google AI, Vertex AI)
+- [x] Cuatro servidores MCP (Filesystem, Shell, Memory, Search)
+- [x] Cuatro herramientas de código (Editor, Reviewer, Tester, Docs)
+- [x] CLI interactivo con Rich y Prompt Toolkit
+- [x] Sistema de comandos especiales
+- [x] Integración de tool calling
+- [x] Streaming de respuestas
+- [x] Suite de tests (94 tests pasando)
+
+### En Progreso 🚧
+- [ ] Sistema de plugins extensible
+- [ ] Persistencia con SQLite
+- [ ] Mejoras en visualizaciones Rich
+
+### Planeado 📋
+- [ ] Interfaz web (FastAPI)
+- [ ] Soporte para más modelos (Claude, GPT-4)
+- [ ] Integración con IDEs
+- [ ] Async/await completo
+
+## Ejecución Rápida
+
+### Windows
+```powershell
+.\run.bat
+```
+
+O manualmente:
+```powershell
+.\venv\Scripts\activate
+python -m src.main interactive
+```
+
+## Ejemplo de Uso
+
+```
+nichtichu> /help
+Comandos disponibles:
+  /help     - Muestra esta ayuda
+  /tools    - Lista herramientas disponibles
+  /mcps     - Lista servidores MCP
+  /model    - Cambia el modelo actual
+  /status   - Muestra estado del agente
+  /clear    - Limpia contexto
+  /exit     - Sale del CLI
+
+nichtichu> /tools
+Herramientas disponibles:
+  - editor: Leer y editar archivos
+  - reviewer: Analizar código
+  - tester: Ejecutar tests
+  - docs: Generar documentación
+
+nichtichu> /model gemini-pro
+Modelo cambiado a: gemini-pro
+
+nichtichu> Lee el archivo src/main.py y explícame qué hace
+[Streaming response...]
+```
+
+## Contribuir
+
+Ver [CONTRIBUTING.md](CONTRIBUTING.md) para:
+
+- Reportar bugs
+- Solicitar features
+- Enviar pull requests
+- Guía de estilo de código
 
 ## Licencia
 
@@ -132,5 +300,7 @@ MIT License - ver [LICENSE](LICENSE)
 <div align="center">
 
 **Hecho con `#06B6D4` en todo el mundo**
+
+[GitHub](https://github.com/alexandervi1/nictichu-cli) | [Issues](https://github.com/alexandervi1/nictichu-cli/issues)
 
 </div>
