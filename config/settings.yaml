@@ -1,0 +1,15 @@
+app:
+  name: NictichuCLI
+  version: 0.1.0
+
+models:
+  default_provider: ollama
+  default_model: gemma:7b
+
+visual:
+  theme: nictichu-dark
+  colors:
+    primary: "#06B6D4"
+    success: "#10B981"
+    error: "#EF4444"
+    warning: "#F59E0B"
