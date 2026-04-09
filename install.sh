@@ -9,10 +9,10 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo ""
-echo -e "  ${CYAN}╔═══════════════════════════════════════╗${NC}"
-echo -e "  ${CYAN}║     NictichuCLI - Instalador          ║${NC}"
-echo -e "  ${CYAN}║     1 clic = todo listo              ║${NC}"
-echo -e "  ${CYAN}╚═══════════════════════════════════════╝${NC}"
+echo -e "  ${CYAN}========================================${NC}"
+echo -e "  ${CYAN}|    NictichuCLI - Instalador           |${NC}"
+echo -e "  ${CYAN}|    1 clic = todo listo                |${NC}"
+echo -e "  ${CYAN}========================================${NC}"
 echo ""
 
 # Verificar Python
@@ -40,42 +40,31 @@ echo -e "${GREEN}[OK]${NC} Git detectado"
 
 # Directorio de instalacion
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INSTALL_DIR="$SCRIPT_DIR/nictichu-cli"
 
-if [ -d "$INSTALL_DIR" ]; then
-    echo ""
-    echo -e "${YELLOW}[!]${NC} Se encontro una instalacion previa en $INSTALL_DIR"
-    echo "    1) Reinstalar (borrar e instalar de nuevo)"
-    echo "    2) Actualizar (git pull + reinstalar deps)"
-    echo "    3) Cancelar"
-    echo ""
-    read -p "Selecciona una opcion [1-3]: " choice
-    case $choice in
-        3) exit 0 ;;
-        2)
-            echo -e "${GREEN}[+]${NC} Actualizando..."
-            cd "$INSTALL_DIR"
-            git pull
-            ;;
-        1)
-            echo -e "${GREEN}[+]${NC} Eliminando instalacion previa..."
-            rm -rf "$INSTALL_DIR"
-            ;;
-    esac
-fi
+# Detectar si ya estamos dentro del repo
+if [ -f "$SCRIPT_DIR/pyproject.toml" ]; then
+    INSTALL_DIR="$SCRIPT_DIR"
+    echo -e "${GREEN}[OK]${NC} Instalacion dentro del repositorio existente"
+else
+    INSTALL_DIR="$SCRIPT_DIR/nictichu-cli"
 
-# Clonar repo
-if [ ! -d "$INSTALL_DIR" ]; then
-    echo ""
-    echo -e "${CYAN}[1/5]${NC} Descargando NictichuCLI..."
-    git clone https://github.com/alexandervi1/nictichu-cli.git "$INSTALL_DIR"
+    if [ -d "$INSTALL_DIR" ]; then
+        echo ""
+        echo -e "${YELLOW}[!]${NC} Instalacion previa encontrada. Actualizando..."
+        cd "$INSTALL_DIR"
+        git pull
+    else
+        echo ""
+        echo -e "${CYAN}[1/7]${NC} Descargando NictichuCLI..."
+        git clone https://github.com/alexandervi1/nictichu-cli.git "$INSTALL_DIR"
+    fi
 fi
 
 cd "$INSTALL_DIR"
 
 # Crear entorno virtual
 echo ""
-echo -e "${CYAN}[2/5]${NC} Creando entorno virtual..."
+echo -e "${CYAN}[2/7]${NC} Creando entorno virtual..."
 if [ -d "venv" ]; then
     echo -e "${GREEN}[OK]${NC} Entorno virtual ya existe"
 else
@@ -83,35 +72,79 @@ else
     echo -e "${GREEN}[OK]${NC} Entorno virtual creado"
 fi
 
-# Activar venv
 source venv/bin/activate
 
 # Instalar dependencias
 echo ""
-echo -e "${CYAN}[3/5]${NC} Instalando dependencias..."
+echo -e "${CYAN}[3/7]${NC} Instalando dependencias..."
 pip install --upgrade pip --quiet
 if ! pip install -e . --quiet 2>/dev/null; then
-    echo -e "${YELLOW}[!]${NC} Instalacion con pip install -e fallo, intentando con requirements.txt..."
+    echo -e "${YELLOW}[!]${NC} Intentando con requirements.txt..."
     pip install -r requirements.txt --quiet
 fi
+echo -e "${GREEN}[OK]${NC} Dependencias instaladas"
 
 # Crear .env si no existe
 echo ""
-echo -e "${CYAN}[4/5]${NC} Configurando..."
+echo -e "${CYAN}[4/7]${NC} Configurando..."
 if [ ! -f .env ]; then
     cp .env.example .env
     echo -e "${GREEN}[OK]${NC} Archivo .env creado"
-    echo ""
-    echo -e "    ${YELLOW}*** IMPORTANTE: Edita el archivo .env con tus API keys ***${NC}"
-    echo -e "    Ubicacion: $INSTALL_DIR/.env"
-    echo ""
 else
     echo -e "${GREEN}[OK]${NC} Archivo .env ya existe"
 fi
 
+# Instalar Ollama
+echo ""
+echo -e "${CYAN}[5/7]${NC} Instalando Ollama..."
+if command -v ollama &> /dev/null; then
+    echo -e "${GREEN}[OK]${NC} Ollama ya esta instalado"
+else
+    echo "    Descargando Ollama..."
+    curl -fsSL https://ollama.com/install.sh | sh 2>/dev/null
+    
+    if command -v ollama &> /dev/null; then
+        echo -e "${GREEN}[OK]${NC} Ollama instalado correctamente"
+    else
+        echo -e "${YELLOW}[!]${NC} No se pudo instalar Ollama automaticamente."
+        echo "    Instalalo manualmente desde: https://ollama.com/download"
+        echo "    Luego ejecuta: ollama pull gemma4:e2b"
+    fi
+fi
+
+# Descargar modelo
+echo ""
+echo -e "${CYAN}[6/7]${NC} Descargando modelo gemma4:e2b (7.2 GB)..."
+if command -v ollama &> /dev/null; then
+    # Iniciar Ollama si no esta corriendo
+    if ! ollama list &> /dev/null; then
+        echo "    Iniciando Ollama..."
+        ollama serve &> /dev/null &
+        sleep 3
+    fi
+    
+    if ollama list 2>/dev/null | grep -q "gemma4"; then
+        echo -e "${GREEN}[OK]${NC} Modelo gemma4:e2b ya esta descargado"
+    else
+        echo "    Descargando... (esto puede tardar varios minutos)"
+        if ollama pull gemma4:e2b; then
+            echo -e "${GREEN}[OK]${NC} Modelo gemma4:e2b descargado correctamente"
+        else
+            echo -e "${YELLOW}[!]${NC} No se pudo descargar el modelo."
+            echo "    Ejecuta manualmente: ollama pull gemma4:e2b"
+        fi
+    fi
+else
+    echo -e "${YELLOW}[!]${NC} Ollama no disponible."
+    echo "    Alternativa GRATIS sin instalar nada:"
+    echo "      1. API key en: https://aistudio.google.com/apikey"
+    echo "      2. Editar .env: GOOGLE_AI_API_KEY=tu_key"
+    echo "      3. Ejecutar: nictichu (usa gemini-2.0-flash)"
+fi
+
 # Crear alias
 echo ""
-echo -e "${CYAN}[5/5]${NC} Creando comando de acceso rapido..."
+echo -e "${CYAN}[7/7]${NC} Creando comando de acceso rapido..."
 
 SHELL_RC="$HOME/.bashrc"
 if [ -f "$HOME/.zshrc" ]; then
@@ -130,16 +163,19 @@ else
 fi
 
 echo ""
-echo -e "  ${GREEN}╔═══════════════════════════════════════╗${NC}"
-echo -e "  ${GREEN}║     Instalacion completada! ^_^        ║${NC}"
-echo -e "  ${GREEN}╚═══════════════════════════════════════╝${NC}"
+echo -e "  ${GREEN}========================================${NC}"
+echo -e "  ${GREEN}|    Instalacion completada!            |${NC}"
+echo -e "  ${GREEN}========================================${NC}"
 echo ""
-echo "  Para ejecutar NictichuCLI:"
+echo "  Para ejecutar:"
 echo "    - Comando rapido (recargar shell primero): nictichu"
 echo "    - Manualmente:"
 echo "        cd $INSTALL_DIR"
 echo "        source venv/bin/activate"
 echo "        python -m src.main interactive"
 echo ""
-echo "  Para configurar API keys, edita: .env"
+echo "  Configuracion del modelo:"
+echo "    - Local (Ollama):     ya descargado gemma4:e2b"
+echo "    - Cloud (GRATIS):     editar .env con GOOGLE_AI_API_KEY"
+echo "                          y usar -p google_ai -m gemini-2.0-flash"
 echo ""
