@@ -114,13 +114,13 @@ class NictichuCore:
         
         from ..tools.editor import CodeEditorTool
         from ..tools.reviewer import CodeReviewerTool
-        from ..tools.tester import TestRunnerTool
+        from ..tools.tester import PytestRunner
         from ..tools.docs import DocGeneratorTool
         
         code_tools = [
             CodeEditorTool(),
             CodeReviewerTool(),
-            TestRunnerTool(),
+            PytestRunner(),
             DocGeneratorTool(),
         ]
         

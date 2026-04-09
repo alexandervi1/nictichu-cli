@@ -101,6 +101,9 @@ class SearchMCPClient(MCPClient):
     
     async def _web_search(self, args: dict[str, Any]) -> list[dict[str, Any]]:
         """Búsqueda web."""
+        if not self.client:
+            raise RuntimeError("Cliente de búsqueda no inicializado (API key requerida)")
+        
         query = args.get("query", "")
         count = args.get("count", 10)
         
@@ -136,6 +139,9 @@ class SearchMCPClient(MCPClient):
     
     async def _news_search(self, args: dict[str, Any]) -> list[dict[str, Any]]:
         """Búsqueda de noticias."""
+        if not self.client:
+            raise RuntimeError("Cliente de búsqueda no inicializado (API key requerida)")
+        
         query = args.get("query", "")
         count = args.get("count", 10)
         

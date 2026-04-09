@@ -80,9 +80,9 @@ Comandos disponibles:
         for server in self.core.mcp_manager.get_available_servers():
             client = self.core.mcp_manager.get_client(server)
             if client:
-                status = "activo" if client.is_connected() else "inactivo"
-                tools_count = len(client.list_tools())
-                mcps.append(f"  - {server} ({status}, {tools_count} herramientas)")
+                status = "activo" if await client.is_connected() else "inactivo"
+                tools = await client.list_tools()
+                mcps.append(f"  - {server} ({status}, {len(tools)} herramientas)")
         
         return {
             "text": f"MCP Servers:\n" + "\n".join(mcps)

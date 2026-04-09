@@ -30,18 +30,18 @@ class ConversationLoop:
         """Registrar herramientas disponibles."""
         from ..tools.editor import CodeEditorTool
         from ..tools.reviewer import CodeReviewerTool
-        from ..tools.tester import TestRunnerTool
+        from ..tools.tester import PytestRunner
         from ..tools.docs import DocGeneratorTool
         
-        tools = [
+        self._tool_classes = [
             CodeEditorTool(),
             CodeReviewerTool(),
-            TestRunnerTool(),
+            PytestRunner(),
             DocGeneratorTool(),
         ]
         
-        for tool in tools:
-            self.tools[tool.name] = tool
+        for tool_cls in self._tool_classes:
+            self.tools[tool_cls.name] = tool_cls
         
         logger.info(f"Registradas {len(self.tools)} herramientas")
     
@@ -109,25 +109,26 @@ class ConversationLoop:
         definitions = []
         
         for tool_name, tool in self.tools.items():
-            definitions.append({
-                "type": "function",
-                "function": {
-                    "name": f"code_{tool_name}",
-                    "description": tool.description,
-                    "parameters": {
-                        "type": "object",
-                        "properties": tool.list_tools()[0].get("parameters", {}),
-                        "required": []
+            for tool_def in tool.list_tools():
+                definitions.append({
+                    "type": "function",
+                    "function": {
+                        "name": f"code_{tool_name}_{tool_def['name']}",
+                        "description": tool_def.get("description", ""),
+                        "parameters": {
+                            "type": "object",
+                            "properties": tool_def.get("parameters", {}),
+                            "required": []
+                        }
                     }
-                }
-            })
+                })
         
         for tool_id, mcp_tool in self.mcp_tools.items():
             tool = mcp_tool["tool"]
             definitions.append({
                 "type": "function",
                 "function": {
-                    "name": tool_id.replace(":", "_"),
+                    "name": tool_id.replace(":", "__"),
                     "description": tool.get("description", ""),
                     "parameters": tool.get("parameters", {})
                 }
@@ -146,13 +147,12 @@ class ConversationLoop:
             try:
                 if tool_name.startswith("code_"):
                     result = await self._execute_internal_tool(
-                        tool_name.replace("code_", ""),
+                        tool_name,
                         arguments
                     )
-                elif "_" in tool_name and ":" in tool_name.replace("_", ":"):
-                    mcp_name, tool = tool_name.replace("_", ":").split(":", 1)
-                    mcp_tool = f"{mcp_name}:{tool}"
-                    result = await self._execute_mcp_tool(mcp_tool, arguments)
+                elif tool_name.startswith("mcp__"):
+                    mcp_id = tool_name.replace("mcp__", "", 1).replace("__", ":", 1)
+                    result = await self._execute_mcp_tool(mcp_id, arguments)
                 else:
                     result = {"error": f"Herramienta desconocida: {tool_name}"}
                 
@@ -174,46 +174,32 @@ class ConversationLoop:
         
         return results
     
-    async def _execute_internal_tool(self, tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_internal_tool(self, tool_call_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         """Ejecutar herramienta interna."""
-        if tool_name not in self.tools:
-            return {"error": f"Herramienta no encontrada: {tool_name}"}
+        if not tool_call_name.startswith("code_"):
+            return {"error": f"Formato de herramienta interna inválido: {tool_call_name}"}
         
-        tool = self.tools[tool_name]
+        remainder = tool_call_name[len("code_"):]
         
-        available_methods = {
-            "create_file": tool.create_file,
-            "edit_file": tool.edit_file,
-            "refactor_file": tool.refactor_file,
-            "search_and_replace": tool.search_and_replace,
-            "create_directory": tool.create_directory,
-            "delete_file": tool.delete_file,
-            "analyze_file": tool.analyze_file,
-            "find_issues": tool.find_issues,
-            "generate_report": tool.generate_report,
-            "check_security": tool.check_security,
-            "check_complexity": tool.check_complexity,
-            "run_tests": tool.run_tests,
-            "run_single_test": tool.run_single_test,
-            "list_tests": tool.list_tests,
-            "generate_coverage": tool.generate_coverage,
-            "generate_module_doc": tool.generate_module_doc,
-            "generate_class_doc": tool.generate_class_doc,
-            "generate_function_doc": tool.generate_function_doc,
-            "generate_readme": tool.generate_readme,
-        }
+        matched_tool = None
+        matched_method_name = None
+        for tool_key, tool_obj in self.tools.items():
+            if remainder.startswith(tool_key + "_"):
+                method_name = remainder[len(tool_key) + 1:]
+                if hasattr(tool_obj, method_name):
+                    matched_tool = tool_obj
+                    matched_method_name = method_name
+                    break
         
-        method_name = None
-        for meth in available_methods:
-            if meth.startswith(tool_name.split("_")[0]):
-                method_name = meth
-                break
-        
-        if not method_name or method_name not in available_methods:
-            return {"error": f"Método no encontrado para herramienta: {tool_name}"}
+        if matched_tool is None or matched_method_name is None:
+            return {"error": f"Herramienta no encontrada: {tool_call_name}"}
         
         try:
-            result = await available_methods[method_name](**arguments)
+            method = getattr(matched_tool, matched_method_name)
+            if arguments:
+                result = await method(**arguments)
+            else:
+                result = await method()
             return {"success": True, "result": result}
         except Exception as e:
             return {"error": str(e)}

@@ -2,6 +2,9 @@ from typing import Any
 
 from ..utils.logger import get_logger
 from .base import BaseModel
+from .ollama import OllamaModel
+from .google_ai import GoogleAIModel
+from .vertex_ai import VertexAIModel
 
 logger = get_logger()
 
@@ -12,6 +15,13 @@ class ModelRegistry:
     def __init__(self):
         self._models: dict[str, BaseModel] = {}
         self._providers: dict[str, type[BaseModel]] = {}
+        self._register_default_providers()
+    
+    def _register_default_providers(self) -> None:
+        """Registrar proveedores por defecto."""
+        self.register_provider("ollama", OllamaModel)
+        self.register_provider("google_ai", GoogleAIModel)
+        self.register_provider("vertex_ai", VertexAIModel)
     
     def register_provider(self, name: str, provider_class: type[BaseModel]) -> None:
         """Registrar un proveedor de modelos."""

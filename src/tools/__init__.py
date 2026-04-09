@@ -1,6 +1,6 @@
 from .editor import CodeEditorTool
 from .reviewer import CodeReviewerTool
-from .tester import TestRunnerTool
+from .tester import PytestRunner
 from .docs import DocGeneratorTool
 
-__all__ = ["CodeEditorTool", "CodeReviewerTool", "TestRunnerTool", "DocGeneratorTool"]
+__all__ = ["CodeEditorTool", "CodeReviewerTool", "PytestRunner", "DocGeneratorTool"]

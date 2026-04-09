@@ -10,7 +10,7 @@ from src.core.context import ContextManager
 from src.models.registry import get_registry, ModelRegistry
 from src.tools.editor import CodeEditorTool
 from src.tools.reviewer import CodeReviewerTool
-from src.tools.tester import TestRunnerTool
+from src.tools.tester import PytestRunner
 from src.tools.docs import DocGeneratorTool
 
 
@@ -173,7 +173,7 @@ class TestEndToEndIntegration:
     @pytest.mark.asyncio
     async def test_tester_tool_integration(self):
         """Test integración de herramienta de tests."""
-        tester = TestRunnerTool()
+        tester = PytestRunner()
         
         tools = tester.list_tools()
         

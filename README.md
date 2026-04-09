@@ -14,19 +14,32 @@
 
 ---
 
-## Instalación Rápida
+## Instalación Rápida (1 clic)
 
-```powershell
-# 1. Clonar repositorio
-cd C:\Users\Worsktation 2029\Documents\GitHub\nictichu-cli
+### Windows
+```
+Doble clic en install.bat
+```
+Esto descarga, instala todo, configura el .env y crea un acceso directo en el escritorio.
 
-# 2. Activar entorno virtual
-.\venv\Scripts\activate
+### Linux / Mac
+```bash
+chmod +x install.sh && ./install.sh
+```
+Esto descarga, instala todo y agrega el comando `nictichu` al shell.
 
-# 3. Instalar dependencias
+### Ejecutar después de instalar
+- **Windows**: Doble clic en `run.bat` (o el acceso directo del escritorio)
+- **Linux/Mac**: Escribe `nictichu` en la terminal
+
+### Instalación manual
+```bash
+git clone https://github.com/alexandervi1/nictichu-cli.git
+cd nictichu-cli
+python -m venv venv
+source venv/bin/activate  # Linux/Mac | venv\Scripts\activate (Windows)
 pip install -e .
-
-# 4. Ejecutar CLI interactivo
+cp .env.example .env      # configurar API keys
 python -m src.main interactive
 ```
 

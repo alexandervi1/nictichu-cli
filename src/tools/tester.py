@@ -9,7 +9,7 @@ from ..utils.logger import get_logger
 logger = get_logger()
 
 
-class TestRunnerTool:
+class PytestRunner:
     """Herramienta para ejecutar y gestionar tests."""
     
     def __init__(self):

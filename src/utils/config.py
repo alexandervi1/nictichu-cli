@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     google_ai_api_key: str | None = None
     google_cloud_project: str | None = None
     google_cloud_location: str = "us-central1"
+    brave_search_api_key: str | None = None
 
 
 _settings: Settings | None = None
@@ -52,9 +53,10 @@ def load_config(config_path: str | None = None) -> dict[str, Any]:
                     "google_ai_api_key": settings.google_ai_api_key,
                     "google_cloud_project": settings.google_cloud_project,
                     "google_cloud_location": settings.google_cloud_location,
+                    "brave_search_api_key": settings.brave_search_api_key,
                     **config_data
                 }
-    
+        
     settings = get_settings()
     return {
         "app_name": settings.app_name,
@@ -66,4 +68,5 @@ def load_config(config_path: str | None = None) -> dict[str, Any]:
         "google_ai_api_key": settings.google_ai_api_key,
         "google_cloud_project": settings.google_cloud_project,
         "google_cloud_location": settings.google_cloud_location,
+        "brave_search_api_key": settings.brave_search_api_key,
     }

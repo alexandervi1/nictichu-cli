@@ -1,52 +1,64 @@
 # Guía de Instalación - NictichuCLI
 
-## Windows
+## Instalación con 1 clic (Recomendado)
 
-### Requisitos
+### Windows
+```
+Doble clic en install.bat
+```
+Se descarga, instala todo, configura el .env y crea un acceso directo en el escritorio.
+
+### Linux / Mac
+```bash
+chmod +x install.sh && ./install.sh
+```
+Se descarga, instala todo y agrega el comando `nictichu` al shell.
+
+### Ejecutar después de instalar
+- **Windows**: Doble clic en `run.bat` o el acceso directo del escritorio
+- **Linux/Mac**: Escribe `nictichu` en la terminal
+
+---
+
+## Instalación Manual
+
+### Windows
+
+#### Requisitos
 - Python 3.10+
 - Git
 
-### Instalación
+#### Pasos
 ```powershell
-# Clonar
-git clone https://github.com/TU_USUARIO/nictichu-cli.git
+git clone https://github.com/alexandervi1/nictichu-cli.git
 cd nictichu-cli
 
-# Crear entorno virtual
 python -m venv venv
 venv\Scripts\activate
 
-# Instalar
 pip install -e .
 
-# Configurar
 copy .env.example .env
 notepad .env
 
-# Ejecutar
 python -m src.main interactive
 ```
 
-## Ubuntu/Linux
+### Linux / Mac
 
-### Instalación
+#### Pasos
 ```bash
-# Clonar
-git clone https://github.com/TU_USUARIO/nictichu-cli.git
+git clone https://github.com/alexandervi1/nictichu-cli.git
 cd nictichu-cli
 
-# Crear entorno virtual
 python3 -m venv venv
 source venv/bin/activate
 
-# Instalar
 pip install -e .
 
-# Configurar
 cp .env.example .env
 nano .env
 
-# Ejecutar
 python -m src.main interactive
 ```
 

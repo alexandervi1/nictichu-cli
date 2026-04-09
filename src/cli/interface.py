@@ -116,7 +116,7 @@ class NictichuCLI:
     
     def _get_prompt(self) -> str:
         """Obtener prompt del usuario."""
-        return f"[{self.THEME['primary']}][{self.model_name}][/{self.THEME['primary']}] > "
+        return f"[{self.model_name}] > "
     
     def _show_banner(self) -> None:
         """Mostrar banner de bienvenida."""

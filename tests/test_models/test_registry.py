@@ -38,7 +38,7 @@ class TestModelRegistry:
     def test_registry_initialization(self):
         """Test inicialización del registro."""
         assert len(self.registry._models) == 0
-        assert len(self.registry._providers) == 0
+        assert len(self.registry._providers) == 3  # ollama, google_ai, vertex_ai registrados por defecto
     
     def test_register_provider(self):
         """Test registro de proveedor."""
@@ -129,7 +129,7 @@ class TestModelRegistry:
         
         providers = self.registry.list_providers()
         
-        assert len(providers) == 2
+        assert len(providers) == 5  # 3 default + 2 registered
         assert "provider1" in providers
         assert "provider2" in providers
     
