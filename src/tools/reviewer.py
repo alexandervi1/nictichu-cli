@@ -223,4 +223,181 @@ class CodeReviewerTool:
         ]
         
         for pattern, suggestion in patterns:
-            matches
+            matches = re.findall(pattern, content, re.MULTILINE)
+            if matches:
+                issues.append({
+                    "type": suggestion,
+                    "count": len(matches)
+                })
+        
+        return {
+            "issues": issues,
+            "suggestions": len(issues) == 0
+        }
+    
+    def _find_syntax_errors(self, content: str) -> list[dict[str, Any]]:
+        """Encontrar errores de sintaxis."""
+        issues = []
+        
+        patterns = [
+            (r"^\s*def\s+\w+\s*\([^)]*\s*:", "Missing parenthesis in function definition"),
+            (r"^\s*class\s+\w+\s*[^:]*$", "Missing colon in class definition"),
+            (r"^\s*if\s+.*\s*[^:]$", "Missing colon in if statement"),
+            (r"^\s*for\s+.*\s*[^:]$", "Missing colon in for loop"),
+            (r"^\s*while\s+.*\s*[^:]$", "Missing colon in while loop"),
+        ]
+        
+        for pattern, description in patterns:
+            matches = re.findall(pattern, content, re.MULTILINE)
+            for match in matches:
+                issues.append({
+                    "type": "syntax_error",
+                    "severity": "error",
+                    "message": description,
+                    "line": content[:content.find(match)].count("\n") + 1
+                })
+        
+        return issues
+    
+    def _find_style_issues(self, content: str) -> list[dict[str, Any]]:
+        """Encontrar issues de estilo."""
+        issues = []
+        lines = content.split("\n")
+        
+        for i, line in enumerate(lines, 1):
+            if len(line) > 120:
+                issues.append({
+                    "type": "style",
+                    "severity": "warning",
+                    "message": f"Line too long ({len(line)} chars)",
+                    "line": i
+                })
+            
+            if line.endswith(" ") or line.endswith("\t"):
+                issues.append({
+                    "type": "style",
+                    "severity": "info",
+                    "message": "Trailing whitespace",
+                    "line": i
+                })
+        
+        return issues
+    
+    def _find_security_issues(self, content: str) -> list[dict[str, Any]]:
+        """Encontrar issues de seguridad."""
+        issues = []
+        
+        patterns = [
+            (r"password\s*=\s*['\"].*['\"]", "hardcoded_password", "error"),
+            (r"api_key\s*=\s*['\"].*['\"]", "hardcoded_api_key", "error"),
+            (r"secret\s*=\s*['\"].*['\"]", "hardcoded_secret", "error"),
+            (r"eval\s*\(", "use_of_eval", "warning"),
+            (r"exec\s*\(", "use_of_exec", "warning"),
+        ]
+        
+        for pattern, issue_type, severity in patterns:
+            matches = re.finditer(pattern, content, re.IGNORECASE)
+            for match in matches:
+                line_num = content[:match.start()].count("\n") + 1
+                issues.append({
+                    "type": issue_type,
+                    "severity": severity,
+                    "message": f"Found {issue_type.replace('_', ' ')}",
+                    "line": line_num
+                })
+        
+        return issues
+    
+    def _find_performance_issues(self, content: str) -> list[dict[str, Any]]:
+        """Encontrar issues de rendimiento."""
+        issues = []
+        
+        patterns = [
+            (r"for\s+\w+\s+in\s+range\(len\(", "Use enumerate() instead of range(len())", "warning"),
+            (r"\.append\(.*\)\s*for\s+", "Consider list comprehension", "info"),
+        ]
+        
+        for pattern, description, severity in patterns:
+            matches = re.finditer(pattern, content, re.MULTILINE)
+            for match in matches:
+                line_num = content[:match.start()].count("\n") + 1
+                issues.append({
+                    "type": "performance",
+                    "severity": severity,
+                    "message": description,
+                    "line": line_num
+                })
+        
+        return issues
+    
+    def _generate_markdown_report(
+        self,
+        analysis: dict[str, Any],
+        issues: list[dict[str, Any]],
+        filename: str
+    ) -> str:
+        """Generar reporte en formato markdown."""
+        report = f"# Code Review Report: {filename}\n\n"
+        
+        report += "## Summary\n\n"
+        report += f"- **File**: {analysis['file']}\n"
+        report += f"- **Size**: {analysis['size']} bytes\n"
+        report += f"- **Lines**: {analysis['lines']}\n\n"
+        
+        if "checks" in analysis:
+            report += "## Checks\n\n"
+            
+            if "complexity" in analysis["checks"]:
+                report += "### Complexity\n\n"
+                comp = analysis["checks"]["complexity"]
+                report += f"- Max line length: {comp['max_line_length']}\n"
+                report += f"- Avg line length: {comp['avg_line_length']}\n"
+                report += f"- Functions: {comp['function_count']}\n"
+                report += f"- Classes: {comp['class_count']}\n\n"
+            
+            if "security" in analysis["checks"]:
+                report += "### Security\n\n"
+                sec = analysis["checks"]["security"]
+                report += f"- **Secure**: {'Yes' if sec['is_secure'] else 'No'}\n"
+                if sec["issues"]:
+                    for issue in sec["issues"]:
+                        report += f"  - {issue['type']}: {issue['count']}\n"
+                report += "\n"
+        
+        if issues:
+            report += "## Issues\n\n"
+            for issue in issues:
+                report += f"- **{issue['severity'].upper()}** (Line {issue['line']}): {issue['message']}\n"
+        
+        return report
+    
+    def _generate_text_report(
+        self,
+        analysis: dict[str, Any],
+        issues: list[dict[str, Any]]
+    ) -> str:
+        """Generar reporte en formato texto."""
+        report = f"Code Review Report\n"
+        report += f"==================\n\n"
+        
+        report += f"File: {analysis['file']}\n"
+        report += f"Size: {analysis['size']} bytes\n"
+        report += f"Lines: {analysis['lines']}\n\n"
+        
+        if "checks" in analysis:
+            report += "Checks\n------\n\n"
+            
+            if "complexity" in analysis["checks"]:
+                comp = analysis["checks"]["complexity"]
+                report += f"Complexity:\n"
+                report += f"  Max line length: {comp['max_line_length']}\n"
+                report += f"  Avg line length: {comp['avg_line_length']}\n"
+                report += f"  Functions: {comp['function_count']}\n"
+                report += f"  Classes: {comp['class_count']}\n\n"
+        
+        if issues:
+            report += "Issues\n------\n\n"
+            for issue in issues:
+                report += f"[{issue['severity'].upper()}] Line {issue['line']}: {issue['message']}\n"
+        
+        return report

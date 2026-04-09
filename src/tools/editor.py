@@ -240,4 +240,64 @@ class CodeEditorTool:
         
         import_lines = []
         other_lines = []
-        in_imports
+        in_imports = False
+        
+        for line in lines:
+            if line.startswith("import ") or line.startswith("from "):
+                import_lines.append(line)
+                in_imports = True
+            elif in_imports and line.strip() == "":
+                pass
+            else:
+                in_imports = False
+                other_lines.append(line)
+        
+        import_lines.sort()
+        
+        return "\n".join(import_lines) + "\n" + "\n".join(other_lines)
+    
+    def _remove_unused(self, content: str) -> str:
+        """Eliminar imports no usados."""
+        import re
+        
+        imports = re.findall(r"^(?:from\s+\S+\s+import\s+\S+|import\s+\S+)", content, re.MULTILINE)
+        
+        used_names = set()
+        for name in re.findall(r"\b\w+\b", content):
+            used_names.add(name)
+        
+        used_imports = []
+        for imp in imports:
+            if "from " in imp:
+                module = re.search(r"from\s+(\S+)", imp)
+                names = re.search(r"import\s+(.+)", imp)
+                if module and names:
+                    names_list = [n.strip() for n in names.group(1).split(",")]
+                    used_names_list = [n for n in names_list if n in used_names]
+                    if used_names_list:
+                        used_imports.append(f"from {module.group(1)} import {', '.join(used_names_list)}")
+            else:
+                name = imp.replace("import ", "").strip()
+                if name.split(".")[0] in used_names:
+                    used_imports.append(imp)
+        
+        content_without_imports = re.sub(r"^(?:from\s+\S+\s+import\s+\S+|import\s+\S+)\n?", "", content, flags=re.MULTILINE)
+        
+        return "\n".join(used_imports) + "\n\n" + content_without_imports.lstrip()
+    
+    def _count_lines_changed(self, original: str, modified: str) -> int:
+        """Contar líneas modificadas."""
+        original_lines = original.split("\n")
+        modified_lines = modified.split("\n")
+        
+        changed = 0
+        max_lines = max(len(original_lines), len(modified_lines))
+        
+        for i in range(max_lines):
+            orig_line = original_lines[i] if i < len(original_lines) else None
+            mod_line = modified_lines[i] if i < len(modified_lines) else None
+            
+            if orig_line != mod_line:
+                changed += 1
+        
+        return changed
